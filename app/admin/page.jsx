@@ -27,6 +27,15 @@ async function getDados() {
     if (e.evento === 'submeteu') { p.caiu = true; p.quando = new Date(e.created_at).toLocaleString('pt-BR'); }
   }
 
+  // Funil monotonico: um evento posterior implica os anteriores. Sem o webhook do
+  // Brevo, "recebeu/abriu" nao chegam; mas quem clicou necessariamente recebeu e
+  // abriu o e-mail, entao inferimos para manter os numeros coerentes.
+  for (const p of Object.values(map)) {
+    if (p.caiu) p.clicou = true;
+    if (p.clicou) p.aberto = true;
+    if (p.aberto) p.entregue = true;
+  }
+
   const lista = Object.values(map);
   const n = (f) => lista.filter(f).length;
   return {
@@ -105,7 +114,7 @@ export default async function Dashboard() {
         </tbody>
       </table>
       <p style={{ fontSize: 13, color: '#888', marginTop: 16 }}>
-        Nenhuma senha e registrada. "Receberam/Abriram" vem do Brevo (webhook); "Clicou/Caiu" do rastreio da propria pagina.
+        Nenhuma senha e registrada. "Receberam/Abriram" vem do Brevo (webhook) ou sao inferidos quando houve clique; "Clicou/Caiu" do rastreio da propria pagina.
       </p>
     </>
   );
