@@ -1,0 +1,10 @@
+[build]
+  command = "npm run build"
+
+# Secret scanning do Netlify:
+# Estas chaves NAO sao segredos — seus valores aparecem legitimamente no HTML/JS
+# (nome do remetente, e-mail do remetente, URL publica, usuario do painel).
+# Os segredos de verdade (TURSO_AUTH_TOKEN, BREVO_API_KEY, ADMIN_PASS,
+# BREVO_WEBHOOK_SECRET) continuam sendo verificados normalmente.
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "SENDER_NAME,SENDER_EMAIL,BASE_URL,ADMIN_USER"
