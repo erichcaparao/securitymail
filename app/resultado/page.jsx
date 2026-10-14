@@ -34,7 +34,7 @@ export default function Resultado({ searchParams }) {
                 <li>Confira o domínio do link antes de clicar (é mesmo <i>engelmig.com.br</i>/<i>microsoft.com</i>?).</li>
                 <li>Desconfie de urgência ("prazo hoje", "acesso será bloqueado").</li>
                 <li>Login inesperado? Pare e verifique.</li>
-                <li>Na dúvida, encaminhe para <b>ti@engelmig.com.br</b>.</li>
+                <li>Na dúvida, encaminhe a mensagem suspeita para o Departamento de TI.</li>
                 <li>Ative o <b>MFA</b> — protege mesmo se a senha vazar.</li>
               </ul>
             </div>
@@ -42,7 +42,7 @@ export default function Resultado({ searchParams }) {
           </div>
           <div style={{ padding: '22px 40px', background: '#fafafa', borderTop: '1px solid #eee', fontSize: 13, color: '#666', textAlign: 'center' }}>
             <b><span style={{ color: '#231F20' }}>ENGELMIG</span> <span style={{ color: '#086738' }}>ENERGIA</span></b><br />
-            Tecnologia da Informação · Segurança da Informação — <b>ti@engelmig.com.br</b>
+            Tecnologia da Informação · Segurança da Informação
           </div>
         </div>
       </div>
