@@ -1,4 +1,5 @@
 import { getPool } from '@/lib/db';
+import { baseUrl } from '@/lib/base';
 import ImportForm from './ImportForm';
 
 export const dynamic = 'force-dynamic';
@@ -8,7 +9,7 @@ export default async function Contatos() {
   const [recips] = await pool.query(
     'SELECT token,nome,email,cargo,enviado_em FROM recipients ORDER BY nome'
   );
-  const base = (process.env.BASE_URL || '').replace(/\/$/, '');
+  const base = baseUrl();
 
   return (
     <>

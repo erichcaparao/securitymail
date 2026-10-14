@@ -10,8 +10,9 @@ for (const line of readFileSync(new URL('../.env.local', import.meta.url), 'utf8
 
 const { templateEmail, ASSUNTO_CAMPANHA } = await import('../lib/template.js');
 const { getPool } = await import('../lib/db.js');
+const { baseUrl } = await import('../lib/base.js');
 const reenviar = process.argv.includes('todos');
-const base = (process.env.BASE_URL || '').replace(/\/$/, '');
+const base = baseUrl();
 
 const pool = getPool();
 

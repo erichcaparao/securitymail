@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPool } from '@/lib/db';
+import { baseUrl } from '@/lib/base';
 import { enviarEmail } from '@/lib/brevo';
 
 // Dispara a campanha para quem ainda nao recebeu.
@@ -10,7 +11,7 @@ export async function POST(req) {
   const reenviar = !!body.reenviar;
 
   const pool = getPool();
-  const base = (process.env.BASE_URL || '').replace(/\/$/, '');
+  const base = baseUrl();
 
   const [recips] = await pool.query(
     reenviar

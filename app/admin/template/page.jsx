@@ -1,4 +1,5 @@
 import { getPool } from '@/lib/db';
+import { baseUrl } from '@/lib/base';
 import { templateEmail, ASSUNTO_CAMPANHA } from '@/lib/template';
 import SendButton from './SendButton';
 
@@ -9,7 +10,7 @@ export default async function TemplatePage() {
   const [[{ total }]] = await pool.query('SELECT COUNT(*) AS total FROM recipients');
   const [[{ pend }]] = await pool.query('SELECT COUNT(*) AS pend FROM recipients WHERE enviado_em IS NULL');
 
-  const base = (process.env.BASE_URL || '').replace(/\/$/, '');
+  const base = baseUrl();
   // Preview com um token de exemplo
   const html = templateEmail('Fulano de Tal', `${base}/acesso?id=EXEMPLO_TOKEN`);
 
