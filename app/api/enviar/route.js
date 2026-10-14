@@ -25,7 +25,7 @@ export async function POST(req) {
     const link = `${base}/acesso?id=${encodeURIComponent(r.token)}`;
     try {
       const messageId = await enviarEmail({ token: r.token, nome: r.nome, email: r.email, link });
-      await pool.query('UPDATE recipients SET enviado_em=NOW(), message_id=? WHERE token=?',
+      await pool.query('UPDATE recipients SET enviado_em=CURRENT_TIMESTAMP, message_id=? WHERE token=?',
         [messageId, r.token]);
       await pool.query('INSERT INTO email_events (token, tipo, detalhe) VALUES (?,?,?)',
         [r.token, 'enviado', messageId || '']);

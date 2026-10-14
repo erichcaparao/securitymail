@@ -1,7 +1,6 @@
 // Disparo da campanha via linha de comando (alternativa ao botao do painel).
 // Uso: npm run enviar          -> envia so para pendentes
 //      npm run enviar -- todos  -> reenvia para todos
-import mysql from 'mysql2/promise';
 import { readFileSync } from 'node:fs';
 
 for (const line of readFileSync(new URL('../.env.local', import.meta.url), 'utf8').split('\n')) {
@@ -10,13 +9,11 @@ for (const line of readFileSync(new URL('../.env.local', import.meta.url), 'utf8
 }
 
 const { templateEmail, ASSUNTO_CAMPANHA } = await import('../lib/template.js');
+const { getPool } = await import('../lib/db.js');
 const reenviar = process.argv.includes('todos');
 const base = (process.env.BASE_URL || '').replace(/\/$/, '');
 
-const pool = mysql.createPool({
-  host: process.env.MYSQL_HOST, port: Number(process.env.MYSQL_PORT || 3306),
-  user: process.env.MYSQL_USER, password: process.env.MYSQL_PASSWORD, database: process.env.MYSQL_DATABASE,
-});
+const pool = getPool();
 
 const [recips] = await pool.query(
   reenviar ? 'SELECT token,nome,email FROM recipients ORDER BY id'
@@ -40,7 +37,7 @@ for (const r of recips) {
     const txt = await res.text();
     if (!res.ok) throw new Error(`${res.status} ${txt}`);
     let mid = ''; try { mid = JSON.parse(txt).messageId || ''; } catch {}
-    await pool.query('UPDATE recipients SET enviado_em=NOW(), message_id=? WHERE token=?', [mid, r.token]);
+    await pool.query('UPDATE recipients SET enviado_em=CURRENT_TIMESTAMP, message_id=? WHERE token=?', [mid, r.token]);
     await pool.query('INSERT INTO email_events (token,tipo,detalhe) VALUES (?,?,?)', [r.token, 'enviado', mid]);
     console.log(`  ok  ${r.email}`);
   } catch (e) {
