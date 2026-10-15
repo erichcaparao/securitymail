@@ -1,4 +1,5 @@
 import { getPool } from '@/lib/db';
+import FunilSankey from './FunilSankey';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,7 +13,7 @@ async function getDados() {
   for (const r of recips) map[r.token] = {
     ...r,
     enviado: !!r.enviado_em, entregue: false, aberto: false,
-    clicou: false, caiu: false, quando: '',
+    clicou: false, digitou: false, caiu: false, quando: '',
   };
   for (const e of ee) {
     const p = map[e.token]; if (!p) continue;
@@ -24,14 +25,16 @@ async function getDados() {
   for (const e of pe) {
     const p = map[e.token]; if (!p) continue;
     if (e.evento === 'clique') p.clicou = true;
+    if (e.evento === 'digitou_email') p.digitou = true;
     if (e.evento === 'submeteu') { p.caiu = true; p.quando = new Date(e.created_at).toLocaleString('pt-BR'); }
   }
 
   // Funil monotonico: um evento posterior implica os anteriores. Sem o webhook do
-  // Brevo, "recebeu/abriu" nao chegam; mas quem clicou necessariamente recebeu e
-  // abriu o e-mail, entao inferimos para manter os numeros coerentes.
+  // Brevo, "recebeu/abriu" nao chegam; mas quem caiu necessariamente digitou o
+  // e-mail, clicou, recebeu e abriu o e-mail, entao inferimos para manter coerencia.
   for (const p of Object.values(map)) {
-    if (p.caiu) p.clicou = true;
+    if (p.caiu) p.digitou = true;
+    if (p.digitou) p.clicou = true;
     if (p.clicou) p.aberto = true;
     if (p.aberto) p.entregue = true;
   }
@@ -45,6 +48,7 @@ async function getDados() {
     recebidos: n(p => p.entregue),
     abriram: n(p => p.aberto),
     clicaram: n(p => p.clicou),
+    digitaram: n(p => p.digitou),
     cairam: n(p => p.caiu),
   };
 }
@@ -58,6 +62,7 @@ export default async function Dashboard() {
     ['Receberam', d.recebidos, '#086738'],
     ['Abriram', d.abriram, '#0a7d45'],
     ['Clicaram', d.clicaram, '#c58a00'],
+    ['Digitaram e-mail', d.digitaram, '#d2691e'],
     ['Cairam', d.cairam, '#ED1C24'],
   ];
   const Tag = ({ on, bad }) => (
@@ -91,8 +96,23 @@ export default async function Dashboard() {
         ))}
       </div>
 
+      <div style={{ background: '#fff', borderRadius: 10, padding: '18px 20px 8px', marginBottom: 24, boxShadow: '0 4px 14px rgba(0,0,0,.06)' }}>
+        <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>Funil da campanha</div>
+        <div style={{ fontSize: 13, color: '#666', marginBottom: 8 }}>
+          Do envio até a submissão do login. "Caiu" = chegou na tela de senha e clicou em Entrar (inseriu os dados).
+        </div>
+        <FunilSankey
+          enviados={d.enviados}
+          abriram={d.abriram}
+          naoAbriram={Math.max(d.enviados - d.abriram, 0)}
+          clicaram={d.clicaram}
+          digitaram={d.digitaram}
+          cairam={d.cairam}
+        />
+      </div>
+
       <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: 10, overflow: 'hidden', boxShadow: '0 4px 14px rgba(0,0,0,.06)' }}>
-        <thead><tr>{['Nome', 'Cargo', 'E-mail', 'Enviado', 'Recebeu', 'Abriu', 'Clicou', 'Caiu', 'Quando'].map(h =>
+        <thead><tr>{['Nome', 'Cargo', 'E-mail', 'Enviado', 'Recebeu', 'Abriu', 'Clicou', 'Digitou', 'Caiu', 'Quando'].map(h =>
           <th key={h} style={{ padding: '11px 12px', textAlign: 'left', fontSize: 13, background: '#231F20', color: '#fff' }}>{h}</th>)}</tr></thead>
         <tbody>
           {d.lista.map(p => (
@@ -104,17 +124,18 @@ export default async function Dashboard() {
               <td style={td}><Tag on={p.entregue} /></td>
               <td style={td}><Tag on={p.aberto} /></td>
               <td style={td}><Tag on={p.clicou} /></td>
+              <td style={td}><Tag on={p.digitou} /></td>
               <td style={td}><Tag on={p.caiu} bad /></td>
               <td style={td}>{p.quando}</td>
             </tr>
           ))}
           {d.lista.length === 0 && (
-            <tr><td style={td} colSpan={9}>Nenhum contato importado ainda. Va em Contatos para importar a lista.</td></tr>
+            <tr><td style={td} colSpan={10}>Nenhum contato importado ainda. Va em Contatos para importar a lista.</td></tr>
           )}
         </tbody>
       </table>
       <p style={{ fontSize: 13, color: '#888', marginTop: 16 }}>
-        Nenhuma senha e registrada. "Receberam/Abriram" vem do Brevo (webhook) ou sao inferidos quando houve clique; "Clicou/Caiu" do rastreio da propria pagina.
+        Nenhuma senha e registrada. "Receberam/Abriram" vem do Brevo (webhook) ou sao inferidos quando houve clique; "Clicou/Digitou/Caiu" do rastreio da propria pagina. "Digitou" = avancou para a tela de senha; "Caiu" = clicou em Entrar (submeteu o login).
       </p>
     </>
   );
