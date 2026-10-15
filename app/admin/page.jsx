@@ -1,5 +1,6 @@
 import { getPool } from '@/lib/db';
 import FunilSankey from './FunilSankey';
+import GridContatos from './GridContatos';
 
 export const dynamic = 'force-dynamic';
 
@@ -65,12 +66,6 @@ export default async function Dashboard() {
     ['Digitaram e-mail', d.digitaram, '#d2691e'],
     ['Cairam', d.cairam, '#ED1C24'],
   ];
-  const Tag = ({ on, bad }) => (
-    <span style={{ padding: '3px 9px', borderRadius: 12, fontSize: 12, fontWeight: 600,
-      ...(on ? (bad ? { background: '#fdeaea', color: '#ED1C24' } : { background: '#e6f4ea', color: '#086738' })
-             : { background: '#eee', color: '#999' }) }}>{on ? 'Sim' : '-'}</span>
-  );
-
   return (
     <>
       <h1 style={{ fontSize: 22, margin: '4px 0 18px' }}>Indicadores da campanha "Planejamento Orcamentario 2027"</h1>
@@ -111,33 +106,12 @@ export default async function Dashboard() {
         />
       </div>
 
-      <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: 10, overflow: 'hidden', boxShadow: '0 4px 14px rgba(0,0,0,.06)' }}>
-        <thead><tr>{['Nome', 'Cargo', 'E-mail', 'Enviado', 'Recebeu', 'Abriu', 'Clicou', 'Digitou', 'Caiu', 'Quando'].map(h =>
-          <th key={h} style={{ padding: '11px 12px', textAlign: 'left', fontSize: 13, background: '#231F20', color: '#fff' }}>{h}</th>)}</tr></thead>
-        <tbody>
-          {d.lista.map(p => (
-            <tr key={p.token}>
-              <td style={td}>{p.nome}</td>
-              <td style={td}>{p.cargo}</td>
-              <td style={td}>{p.email}</td>
-              <td style={td}><Tag on={p.enviado} /></td>
-              <td style={td}><Tag on={p.entregue} /></td>
-              <td style={td}><Tag on={p.aberto} /></td>
-              <td style={td}><Tag on={p.clicou} /></td>
-              <td style={td}><Tag on={p.digitou} /></td>
-              <td style={td}><Tag on={p.caiu} bad /></td>
-              <td style={td}>{p.quando}</td>
-            </tr>
-          ))}
-          {d.lista.length === 0 && (
-            <tr><td style={td} colSpan={10}>Nenhum contato importado ainda. Va em Contatos para importar a lista.</td></tr>
-          )}
-        </tbody>
-      </table>
+      {d.lista.length === 0
+        ? <p style={{ fontSize: 14, color: '#666' }}>Nenhum contato importado ainda. Va em Contatos para importar a lista.</p>
+        : <GridContatos lista={d.lista} />}
       <p style={{ fontSize: 13, color: '#888', marginTop: 16 }}>
         Nenhuma senha e registrada. "Receberam/Abriram" vem do Brevo (webhook) ou sao inferidos quando houve clique; "Clicou/Digitou/Caiu" do rastreio da propria pagina. "Digitou" = avancou para a tela de senha; "Caiu" = clicou em Entrar (submeteu o login).
       </p>
     </>
   );
 }
-const td = { padding: '10px 12px', fontSize: 14, borderBottom: '1px solid #eee' };
