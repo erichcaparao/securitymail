@@ -38,6 +38,19 @@ export default function Resultado({ searchParams }) {
                 <li>Ative o <b>MFA</b> — protege mesmo se a senha vazar.</li>
               </ul>
             </div>
+            <div style={{ marginTop: 30 }}>
+              <h3 style={{ color: '#086738', fontSize: 18, margin: '0 0 6px' }}>Tipos de ameaças que chegam por e-mail</h3>
+              <p style={{ margin: '0 0 16px', color: '#555', fontSize: 14 }}>
+                Material de conscientização da Segurança da Informação — Engelmig Energia.
+              </p>
+              {['img1', 'img2', 'img3', 'img4', 'img5'].map((n, i) => (
+                <img key={n} src={`/img/${n}.png`} loading="lazy"
+                  alt={['Quais ameaças podem surgir através do e-mail', 'Ransomware', 'Phishing', 'Spam', 'Botnet'][i]}
+                  style={{ display: 'block', width: '100%', height: 'auto', borderRadius: 10,
+                    boxShadow: '0 4px 16px rgba(0,0,0,.10)', margin: '0 0 16px' }} />
+              ))}
+            </div>
+
             <p style={{ marginTop: 22 }}>Nenhuma ação disciplinar decorre deste teste — o objetivo é exclusivamente educativo.</p>
           </div>
           <div style={{ padding: '22px 40px', background: '#fafafa', borderTop: '1px solid #eee', fontSize: 13, color: '#666', textAlign: 'center' }}>
