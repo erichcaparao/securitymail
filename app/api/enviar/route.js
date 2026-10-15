@@ -6,9 +6,34 @@ import { enviarEmail } from '@/lib/brevo';
 // Dispara a campanha para quem ainda nao recebeu.
 // body opcional: { reenviar: true } para incluir quem ja recebeu.
 export async function POST(req) {
+  try {
+    return await disparar(req);
+  } catch (e) {
+    // Erro de nivel geral (banco indisponivel, tabela ausente, config faltando...).
+    // Sem este catch o Next devolve um 500 sem corpo JSON e o painel so mostra
+    // "Falha no disparo." sem dizer o motivo.
+    return NextResponse.json(
+      { ok: false, erro: String(e?.message || e) },
+      { status: 500 }
+    );
+  }
+}
+
+async function disparar(req) {
   let body = {};
   try { body = await req.json(); } catch {}
   const reenviar = !!body.reenviar;
+
+  // Checagem de configuracao essencial, com mensagem clara.
+  const faltando = [];
+  if (!process.env.BREVO_API_KEY) faltando.push('BREVO_API_KEY');
+  if (!process.env.SENDER_EMAIL) faltando.push('SENDER_EMAIL');
+  if (faltando.length) {
+    return NextResponse.json(
+      { ok: false, erro: `Variavel de ambiente ausente: ${faltando.join(', ')}` },
+      { status: 500 }
+    );
+  }
 
   const pool = getPool();
   const base = baseUrl();
@@ -39,5 +64,7 @@ export async function POST(req) {
     await new Promise(s => setTimeout(s, 350)); // respeita rate limit do Brevo
   }
 
-  return NextResponse.json({ ok: true, total: recips.length, enviados, falhas });
+  // So e sucesso se ao menos um foi enviado (ou nao havia ninguem para enviar).
+  const ok = enviados > 0 || recips.length === 0;
+  return NextResponse.json({ ok, total: recips.length, enviados, falhas });
 }

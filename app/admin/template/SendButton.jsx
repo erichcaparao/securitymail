@@ -16,9 +16,14 @@ export default function SendButton({ pendentes }) {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reenviar }),
       });
-      const d = await r.json();
+      // A resposta pode nao ser JSON (ex.: erro 500 do servidor com pagina HTML).
+      const texto = await r.text();
+      let d;
+      try { d = JSON.parse(texto); }
+      catch { d = { ok: false, erro: `HTTP ${r.status}: ${texto.slice(0, 300) || r.statusText}` }; }
+      if (!r.ok && d.ok === undefined) d.ok = false;
       setRes(d); router.refresh();
-    } catch (e) { setRes({ ok: false, falhas: [String(e)] }); }
+    } catch (e) { setRes({ ok: false, erro: String(e?.message || e) }); }
     setBusy(false);
   }
 
@@ -37,7 +42,9 @@ export default function SendButton({ pendentes }) {
       {res && (
         <div style={{ marginTop: 14, fontSize: 14, padding: '10px 14px', borderRadius: 6,
           background: res.ok ? '#e6f4ea' : '#fdeaea', color: res.ok ? '#086738' : '#ED1C24' }}>
-          {res.ok ? `Disparo concluído: ${res.enviados}/${res.total} enviados.` : 'Falha no disparo.'}
+          {res.ok
+            ? `Disparo concluído: ${res.enviados}/${res.total} enviados.`
+            : `Falha no disparo${res.erro ? `: ${res.erro}` : '.'}`}
           {res.falhas?.length ? <div style={{ marginTop: 6, fontSize: 12 }}>Falhas: {res.falhas.join(' · ')}</div> : null}
         </div>
       )}
